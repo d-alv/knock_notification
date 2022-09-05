@@ -6,7 +6,7 @@ import RPi.GPIO as GPIO
 import time
 
 
-
+GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
 gp1 = 0# put port
@@ -26,13 +26,22 @@ GPIO.output(gp2, GPIO.LOW)
 GPIO.output(gp3, GPIO.LOW)
 GPIO.output(gp4, GPIO.LOW)
 
-GPIO.setwarnings(False)
-pause = .002
-step_total = 4096 # 4096 = 360 degrees
-clock_wise = True
 
-# documentation sequence for driver
-sequence = [[1,0,0,1],
+
+
+file_name = 'notifications.txt'
+
+
+class MainClass():
+    
+    def __init__(self):
+        
+        # GPIO stuff
+        self.step_total=239
+        self.current_step=0
+        self.pause=.002
+        self.clock_wise=True
+        self.sequence = [[1,0,0,1],
             [1,0,0,0],
             [1,1,0,0],
             [0,1,0,0],
@@ -40,25 +49,10 @@ sequence = [[1,0,0,1],
             [0,0,1,0],
             [0,0,1,1],
             [0,0,0,1]]
-
-pins = [gp1, gp2, gp3, gp4]
-current_step = 0
-
-file_name = 'notifications.txt'
-notifications = 0
-
-class MainClass():
-    
-    def __init__(self):
+        self.pins=[gp1, gp2, gp3, gp4]
         # definitions for retrying failed connection
         self.run_flag = True
-        self.retry_limit=0
-        self.retry=0
-        self.retry_delay_fixed=2 #retry delay (seconds)
-        self.connected_once=False
-        self.count=0
-        self.stime = time.time() # start time
-        self.retry_delay = self.retry_delay_fixed
+        self.stime= time.time()
         self.notifications=0
         
         ################################
@@ -112,14 +106,16 @@ class MainClass():
                 file_object.write('')
         
     def knock():
-        # 4096 steps is 360 degrees
-        for x in range(step_total):
-            for gp in range(0, len(pins)):
-                GPIO.output(pins[gp], sequence[current_step][gp])
-            if clock_wise:
-                current_step = (current_step +1) % 8 # only 8 sequences
+        # 4096 steps is 360 degrees - only need 239
+        for x in range(0,self.step_total*2):
+            for gp in range(0, len(self.pins)):
+                GPIO.output(self.pins[gp], self.sequence[self.current_step][gp])
+            if self.clock_wise:
+                self.current_step = (current_step +1) % 8 # only 8 sequences
             else:
-                current_step = (current_step - 1) % 8
+                self.current_step = (current_step - 1) % 8
+            if x ==self.step_total:
+                self.clock_wise=False
             
     def ring():
         """this is the function for when I receive a phone call"""
