@@ -2,14 +2,14 @@ import paho.mqtt.client as mqtt
 import RPi.GPIO as GPIO
 import time
 
-
+GPIO.setwarnings(False)
 
 GPIO.setmode(GPIO.BCM)
 
-gp1 = 0# put port
-gp2 = 2# put port
-gp3 = 3# put port
-gp4 = 4# put port
+gp1 = 4# put port
+gp2 = 27# put port
+gp3 = 22# put port
+gp4 = 23# put port
 
 # GPIO setups as outputs
 GPIO.setup(gp1, GPIO.OUT)
@@ -24,7 +24,7 @@ GPIO.output(gp3, GPIO.LOW)
 GPIO.output(gp4, GPIO.LOW)
 
 pause = .002
-step_total = 239 # 4096 = 360 degrees
+# 4096 = 360 degrees
 clock_wise = True
 
 # documentation sequence for driver
@@ -41,7 +41,7 @@ pins = [gp1, gp2, gp3, gp4]
 current_step = 0
 
 file_name = 'notifications.txt'
-notifications = 0
+
 
 class MainClass():
 
@@ -56,6 +56,8 @@ class MainClass():
         self.stime = time.time() # start time
         self.retry_delay = self.retry_delay_fixed
         self.elapsed_time = 0
+        self.notifications=0
+        self.step_total = 239 
 
         ################################
         #client info
@@ -71,13 +73,13 @@ class MainClass():
         #prepare run variables/methods
         self.client.on_connect = self.on_connects
         self.client.on_message = self.on_messages
-        self.client.connect("192.168.86.33", 1883, 60)
+        self.client.connect("192.168.86.44", 1883, 60)
         while self.run_flag:
             self.check_time()
             self.client.loop(.01)
             if self.client.connected_flag:
                 # main loop stuff here
-                print("works")
+                
 
 
 
@@ -85,7 +87,7 @@ class MainClass():
 
 
             # this stuff down here for reconnecting if fails
-            rdelay = time.time() - self.stime
+                rdelay = time.time() - self.stime
 
             if not self.client.connected_flag and rdelay>self.retry_delay:
                 try:
@@ -124,10 +126,10 @@ class MainClass():
 
         if msg.payload.decode("utf-8") == "notification":
             print("notifies")
-            notifications += 1
+            self.notifications += 1
             with open(file_name, 'w') as file_object:
-                file_object.write(notifications)
-            self.knock(direction=False)
+                file_object.write(str(self.notifications))
+            self.knock(direction=True)
 
         if msg.payload.decode("utf-8") == "call":
             print("rings")
@@ -138,8 +140,10 @@ class MainClass():
 
         if msg.payload.decode("utf-8") == "clear":
             print("clears")
+            self.notifications=0
             with open(file_name, 'w') as file_object:
                 file_object.write('')
+                
                 
         if msg.payload.decode("utf-8") == "answered":
             # this works for when the phone is answered
@@ -155,18 +159,21 @@ class MainClass():
            then the code must be altered, the ring() function could work
            in a manner so that it repeats it several times"""
         # 4096 steps is 360 degrees
-        for x in range(0, step_total*2):
+        current_step=0
+        for x in range(0, self.step_total*2):
             for gp in range(0, len(pins)):
                 GPIO.output(pins[gp], sequence[current_step][gp])
-            if direction == right:
+            if direction == True:
                 current_step = (current_step +1) % 8 # only 8 sequences
             else:
                 current_step = (current_step - 1) % 8
-            if x == step_total:
-                if direction:
+            if x == self.step_total:
+                if direction == True:
                     direction = False
-                if !direction:
+                if direction == False:
                     direction = True
+                    
+            
 
     def ring(self):
         """this is the function for when I receive a phone call"""
