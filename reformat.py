@@ -48,13 +48,14 @@ class MainClass():
     def __init__(self):
         # definitions for retrying failed connection
         self.run_flag = True
-        self.retry_limit=0
+        self.tot_wait=30
         self.retry=0
         self.retry_delay_fixed=2 #retry delay (seconds)
         self.connected_once=False
         self.count=0
         self.stime = time.time() # start time
         self.retry_delay = self.retry_delay_fixed
+        self.elapsed_time = 0
 
         ################################
         #client info
@@ -72,6 +73,7 @@ class MainClass():
         self.client.on_message = self.on_messages
         self.client.connect("192.168.86.33", 1883, 60)
         while self.run_flag:
+            self.check_time()
             self.client.loop(.01)
             if self.client.connected_flag:
                 # main loop stuff here
@@ -166,8 +168,9 @@ class MainClass():
                 if !direction:
                     direction = True
 
-    def ring():
+    def ring(self):
         """this is the function for when I receive a phone call"""
+        self.set_start()
         if self.call_flag == True:
             # repeat for a certain time before checking
             # if the phone is still ringing
@@ -175,8 +178,27 @@ class MainClass():
             for n in range(0, 5):
                 # make this hit the left side each time.
                 self.knock(direction=False)
+                self.check_time()
+                if self.elapsed_time >= self.tot_wait:
+                    self.call_flag = False
+                # find way for it to be responsive to input by phone
                 # probably add some sort of wait
                 # so that motor isn't overrun with values
+                
+    def check_time(self):
+        """method for constantly checking time -
+           specifically useful for phone ringing and
+           no answer - don't need RTC module since WIFI"""
+        self.elapsed_time = time.time() - self.stime
+        
+        
+    def set_start(self):
+        """method sets timer to zero for phone call"""
+        self.stime = time.time()
+        
+
+
+
 
 #client = mqtt.Client()
 #client.on_connect = on_connect
