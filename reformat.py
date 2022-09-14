@@ -25,7 +25,6 @@ GPIO.output(gp4, GPIO.LOW)
 
 pause = .002
 # 4096 = 360 degrees
-clock_wise = True
 
 # documentation sequence for driver
 sequence = [[1,0,0,1],
@@ -57,7 +56,9 @@ class MainClass():
         self.retry_delay = self.retry_delay_fixed
         self.elapsed_time = 0
         self.notifications=0
-        self.step_total = 239 
+        self.step_total = 0# 239
+        self.right_dirr = 383 # or 384, not sure yet
+        self.left_dirr = 553 # steps needed for 48.6 degree turn left
 
         ################################
         #client info
@@ -78,17 +79,11 @@ class MainClass():
             self.check_time()
             self.client.loop(.01)
             if self.client.connected_flag:
-                # main loop stuff here
+                # any looped command here 
                 
-
-
-
-
-
-
-            # this stuff down here for reconnecting if fails
+            
                 rdelay = time.time() - self.stime
-
+            # if the connection fails, this stuff runs
             if not self.client.connected_flag and rdelay>self.retry_delay:
                 try:
                     retry+=1
@@ -160,6 +155,11 @@ class MainClass():
            in a manner so that it repeats it several times"""
         # 4096 steps is 360 degrees
         current_step=0
+        if direction == True:
+            self.step_total = self.right_dirr
+            
+        else:
+            self.step_total = self.left_dirr
         for x in range(0, self.step_total*2):
             for gp in range(0, len(pins)):
                 GPIO.output(pins[gp], sequence[current_step][gp])
