@@ -56,17 +56,21 @@ class MainClass():
         self.retry_delay = self.retry_delay_fixed
         self.elapsed_time = 0
         self.notifications=0
-        self.step_total = 0# 239
-        self.right_dirr = 383 # or 384, not sure yet
-        self.left_dirr = 553 # steps needed for 48.6 degree turn left
+
 
         ################################
         #client info
 
         self.client = mqtt.Client()
-        
         self.call_flag = False
         
+        ###############################
+        # motor info
+        self.step_total = 0# 239
+        self.right_dirr = 383 # or 384, not sure yet
+        self.left_dirr = 553 # steps needed for 48.6 degree turn left
+        self.stat_pos=0
+        self.net_pos=0
 
 
 
@@ -177,17 +181,23 @@ class MainClass():
 
     def ring(self):
         """this is the function for when I receive a phone call"""
+        # maybe need to use retain flag for this one?
+        
         self.set_start()
         if self.call_flag == True:
-            # repeat for a certain time before checking
-            # if the phone is still ringing
-            # therefore I don't need to use a while loop
+
             for n in range(0, 5):
                 # make this hit the left side each time.
                 self.knock(direction=False)
                 self.check_time()
                 if self.elapsed_time >= self.tot_wait:
                     self.call_flag = False
+            time.sleep(2) #pauses for two seconds / then checks again
+                    
+            if self.call_flag==True:
+                self.ring()
+            else:
+                pass
                 # find way for it to be responsive to input by phone
                 # probably add some sort of wait
                 # so that motor isn't overrun with values
