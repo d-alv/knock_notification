@@ -75,6 +75,17 @@ class MainClass():
         self.client.on_connect = self.on_connects
         self.client.on_message = self.on_messages
         self.client.connect("192.168.86.44", 1883, 60)
+        with open(file_name) as file_object:
+                
+            data = file_object.read()
+            cdata = data.rstrip()
+            notifs = int(cdata) #should produce number
+            if notifs>0:
+                for n in range(notifs): 
+                    self.knock(direction=False)              
+                                    
+                        
+        
         while self.run_flag:
             self.check_time()
             #print(self.elapsed_time)
@@ -82,7 +93,10 @@ class MainClass():
             if self.client.connected_flag:
                 if self.call_flag==True:
                     self.ring()
-                if self.elapsed_time>=1800:
+                    
+                
+                if self.elapsed_time>=900:
+
                     self.set_start()
                     self.client.loop_stop()
                     self.client.connect("192.168.86.44", 1883, 60)
@@ -200,7 +214,7 @@ class MainClass():
             # therefore I don't need to use a while loop
             for n in range(0, 1):
                 # make this hit the left side each time.
-                self.knock(direction=False)
+                self.knock(direction=True)
                 self.check_time()
                 if self.elapsed_time >= self.tot_wait:
                     self.call_flag = False
