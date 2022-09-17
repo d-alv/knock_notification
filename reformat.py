@@ -56,21 +56,17 @@ class MainClass():
         self.retry_delay = self.retry_delay_fixed
         self.elapsed_time = 0
         self.notifications=0
-
+        self.step_total = 0# 239
+        self.right_dirr = 383 # or 384, not sure yet
+        self.left_dirr = 570 # steps needed for 48.6 degree turn left
 
         ################################
         #client info
 
         self.client = mqtt.Client()
+        
         self.call_flag = False
         
-        ###############################
-        # motor info
-        self.step_total = 0# 239
-        self.right_dirr = 383 # or 384, not sure yet
-        self.left_dirr = 553 # steps needed for 48.6 degree turn left
-        self.stat_pos=0
-        self.net_pos=0
 
 
 
@@ -79,10 +75,29 @@ class MainClass():
         self.client.on_connect = self.on_connects
         self.client.on_message = self.on_messages
         self.client.connect("192.168.86.44", 1883, 60)
+        with open(file_name) as file_object:
+                
+            data = file_object.read()
+            cdata = data.rstrip()
+            notifs = int(cdata) #should produce number
+            if notifs>0:
+                for n in range(notifs): 
+                    self.knock(direction=False)              
+                                    
+                        
+        
         while self.run_flag:
             self.check_time()
-            self.client.loop(.01)
+            #print(self.elapsed_time)
+            self.client.loop(.1)
             if self.client.connected_flag:
+                if self.call_flag==True:
+                    self.ring()
+                if self.elapsed_time>=900:
+                    self.set_start()
+                    self.client.loop_stop()
+                    self.client.connect("192.168.86.44", 1883, 60)
+                    self.keep_running()
                 # any looped command here 
                 
             
@@ -124,21 +139,22 @@ class MainClass():
         print(msg.topic+" "+str(msg.payload))
 
         if msg.payload.decode("utf-8") == "notification":
-            print("notifies")
+            #print("notifies")
             self.notifications += 1
             with open(file_name, 'w') as file_object:
                 file_object.write(str(self.notifications))
             self.knock(direction=True)
 
         if msg.payload.decode("utf-8") == "call":
-            print("rings")
+           # print("rings")
+            self.set_start()
             self.call_flag = True
             self.ring()
             #code for this changes
             # rings for 30 seconds if not answered
 
         if msg.payload.decode("utf-8") == "clear":
-            print("clears")
+           # print("clears")
             self.notifications=0
             with open(file_name, 'w') as file_object:
                 file_object.write('')
@@ -147,8 +163,10 @@ class MainClass():
         if msg.payload.decode("utf-8") == "answered":
             # this works for when the phone is answered
             # prompts the robot to stop "notification"
-            print("call answered")
-            self.call_flag=False 
+           # print("call answered")
+            self.call_flag=False
+            
+        
 
     def knock(self, direction=True):
         # if direction == True, that means it hits right side
@@ -158,46 +176,48 @@ class MainClass():
            then the code must be altered, the ring() function could work
            in a manner so that it repeats it several times"""
         # 4096 steps is 360 degrees
+        time.sleep(.5)
         current_step=0
         if direction == True:
             self.step_total = self.right_dirr
             
         else:
             self.step_total = self.left_dirr
-        for x in range(0, self.step_total*2):
+        total = self.step_total*2
+        for x in range(0, total):
+            if x == self.step_total:
+                
+                if direction == True:
+                    direction = False
+                elif direction == False:
+                    direction = True
             for gp in range(0, len(pins)):
                 GPIO.output(pins[gp], sequence[current_step][gp])
             if direction == True:
                 current_step = (current_step +1) % 8 # only 8 sequences
             else:
                 current_step = (current_step - 1) % 8
-            if x == self.step_total:
-                if direction == True:
-                    direction = False
-                if direction == False:
-                    direction = True
+            time.sleep(.0009)
+            
                     
             
 
     def ring(self):
         """this is the function for when I receive a phone call"""
-        # maybe need to use retain flag for this one?
         
-        self.set_start()
         if self.call_flag == True:
-
-            for n in range(0, 5):
+            # repeat for a certain time before checking
+            # if the phone is still ringing
+            # therefore I don't need to use a while loop
+            for n in range(0, 1):
                 # make this hit the left side each time.
-                self.knock(direction=False)
+                self.knock(direction=True)
                 self.check_time()
                 if self.elapsed_time >= self.tot_wait:
                     self.call_flag = False
-            time.sleep(2) #pauses for two seconds / then checks again
-                    
-            if self.call_flag==True:
-                self.ring()
-            else:
-                pass
+            
+            
+            
                 # find way for it to be responsive to input by phone
                 # probably add some sort of wait
                 # so that motor isn't overrun with values
