@@ -72,8 +72,7 @@ class MainClass():
         self.client.on_connect = self.on_connects
         self.client.on_message = self.on_messages
         self.client.connect("192.168.86.44", 1883, 60)
-        with open(file_name) as file_object:
-                
+        with open(file_name) as file_object: 
             data = file_object.read()
             if data=='':
                 pass
@@ -142,7 +141,7 @@ class MainClass():
     def on_messages(self,client, userdata, msg):
         print(msg.topic+" "+str(msg.payload))
 
-        if msg.payload.decode("utf-8") == "notification":
+        if msg.payload.decode("utf-8") == "notif":
             #print("notifies")
             self.notifications += 1
             with open(file_name, 'w') as file_object:
@@ -157,7 +156,7 @@ class MainClass():
             #code for this changes
             # rings for 30 seconds if not answered
 
-        if msg.payload.decode("utf-8") == "clear":
+        if msg.payload.decode("utf-8") == "clearing":
            # print("clears")
             self.notifications=0
             with open(file_name, 'w') as file_object:
@@ -180,6 +179,8 @@ class MainClass():
            then the code must be altered, the ring() function could work
            in a manner so that it repeats it several times"""
         # 4096 steps is 360 degrees
+        time.sleep(.5)
+        current_step=0
         if direction == True:
             self.step_total = self.right_dirr
             
@@ -187,8 +188,7 @@ class MainClass():
             self.step_total = self.left_dirr
         total = self.step_total*2
         if knock_num ==1:
-            time.sleep(.5)
-            current_step=0
+            
             
             for x in range(0, total):
                 if x == self.step_total:
@@ -203,7 +203,8 @@ class MainClass():
                 else:
                     current_step = (current_step - 1) % 8
                 time.sleep(.0009)
-         if knock_num ==2:
+        if knock_num ==2:
+            
             for x in range(0, self.step_total): #handles going down
                 for gp in range(0, len(pins)):
                     GPIO.output(pins[gp], sequence[current_step][gp])
@@ -217,7 +218,7 @@ class MainClass():
                 direction = False
             elif direction == False:
                 direction = True
-            for x in range(0, self.step_total/2): #handles going up
+            for x in range(0, int(self.step_total/2)): #handles going up
                 for gp in range(0, len(pins)):
                     GPIO.output(pins[gp], sequence[current_step][gp])
                 if direction == True:
@@ -229,7 +230,7 @@ class MainClass():
                 direction = False
             elif direction == False:
                 direction = True
-            for x in range(0, self.step_total/2): #handles going down once more
+            for x in range(0, int(self.step_total/2)): #handles going down once more
                 for gp in range(0, len(pins)):
                     GPIO.output(pins[gp], sequence[current_step][gp])
                 if direction == True:
