@@ -78,11 +78,14 @@ class MainClass():
         with open(file_name) as file_object:
                 
             data = file_object.read()
-            cdata = data.rstrip()
-            notifs = int(cdata) #should produce number
-            if notifs>0:
-                for n in range(notifs): 
-                    self.knock(direction=False)              
+            if data=='':
+                pass
+            else:
+                cdata = data.rstrip()
+                notifs = int(cdata) #should produce number
+                if notifs>0:
+                    for n in range(notifs): 
+                        self.knock(direction=False)              
                                     
                         
         
@@ -136,7 +139,7 @@ class MainClass():
             sys.exit(1)
         print("connected with result code "+str(rc))
 
-        client.subscribe("message")
+        client.subscribe([("message1",1),("message2",2)]) 
 
     def on_messages(self,client, userdata, msg):
         print(msg.topic+" "+str(msg.payload))
