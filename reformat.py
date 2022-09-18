@@ -67,9 +67,6 @@ class MainClass():
         
         self.call_flag = False
         
-
-
-
     def keep_running(self):
         #prepare run variables/methods
         self.client.on_connect = self.on_connects
@@ -81,6 +78,7 @@ class MainClass():
             if data=='':
                 pass
             else:
+
                 cdata = data.rstrip()
                 notifs = int(cdata) #should produce number
                 if notifs>0:
@@ -149,7 +147,7 @@ class MainClass():
             self.notifications += 1
             with open(file_name, 'w') as file_object:
                 file_object.write(str(self.notifications))
-            self.knock(direction=True)
+            self.knock(direction=True, knock_num=2)
 
         if msg.payload.decode("utf-8") == "call":
            # print("rings")
@@ -174,7 +172,7 @@ class MainClass():
             
         
 
-    def knock(self, direction=True):
+    def knock(self, direction=True, knock_num=1):
         # if direction == True, that means it hits right side
         """this is the code to make the robot
            tap the desk, of course this is only
@@ -182,28 +180,80 @@ class MainClass():
            then the code must be altered, the ring() function could work
            in a manner so that it repeats it several times"""
         # 4096 steps is 360 degrees
-        time.sleep(.5)
-        current_step=0
         if direction == True:
             self.step_total = self.right_dirr
             
         else:
             self.step_total = self.left_dirr
         total = self.step_total*2
-        for x in range(0, total):
-            if x == self.step_total:
-                
+        if knock_num ==1:
+            time.sleep(.5)
+            current_step=0
+            
+            for x in range(0, total):
+                if x == self.step_total:
+                    if direction == True:
+                        direction = False
+                    elif direction == False:
+                        direction = True
+                for gp in range(0, len(pins)):
+                    GPIO.output(pins[gp], sequence[current_step][gp])
                 if direction == True:
-                    direction = False
-                elif direction == False:
-                    direction = True
-            for gp in range(0, len(pins)):
-                GPIO.output(pins[gp], sequence[current_step][gp])
+                    current_step = (current_step +1) % 8 # only 8 sequences
+                else:
+                    current_step = (current_step - 1) % 8
+                time.sleep(.0009)
+         if knock_num ==2:
+            for x in range(0, self.step_total): #handles going down
+                for gp in range(0, len(pins)):
+                    GPIO.output(pins[gp], sequence[current_step][gp])
+                if direction == True:
+                    current_step = (current_step +1) % 8 # only 8 sequences
+                else:
+                    current_step = (current_step - 1) % 8
+                time.sleep(.0009)
+            # here switches direction
             if direction == True:
-                current_step = (current_step +1) % 8 # only 8 sequences
-            else:
-                current_step = (current_step - 1) % 8
-            time.sleep(.0009)
+                direction = False
+            elif direction == False:
+                direction = True
+            for x in range(0, self.step_total/2): #handles going up
+                for gp in range(0, len(pins)):
+                    GPIO.output(pins[gp], sequence[current_step][gp])
+                if direction == True:
+                    current_step = (current_step +1) % 8 # only 8 sequences
+                else:
+                    current_step = (current_step - 1) % 8
+                time.sleep(.0009)
+            if direction == True:
+                direction = False
+            elif direction == False:
+                direction = True
+            for x in range(0, self.step_total/2): #handles going down once more
+                for gp in range(0, len(pins)):
+                    GPIO.output(pins[gp], sequence[current_step][gp])
+                if direction == True:
+                    current_step = (current_step +1) % 8 # only 8 sequences
+                else:
+                    current_step = (current_step - 1) % 8
+                time.sleep(.0009)
+                
+            if direction == True:
+                direction = False
+            elif direction == False:
+                direction = True  
+                
+            for x in range(0, self.step_total): #handles going up final time
+                for gp in range(0, len(pins)):
+                    GPIO.output(pins[gp], sequence[current_step][gp])
+                if direction == True:
+                    current_step = (current_step +1) % 8 # only 8 sequences
+                else:
+                    current_step = (current_step - 1) % 8
+                time.sleep(.0009)
+                
+                    
+            
             
                     
             
