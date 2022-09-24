@@ -57,7 +57,7 @@ class MainClass():
         self.elapsed_time = 0
         self.notifications=0
         self.step_total = 0# 239
-        self.right_dirr = 383 # or 384, not sure yet
+        self.right_dirr = 390 # or 383, not sure yet
         self.left_dirr = 570 # steps needed for 48.6 degree turn left
 
         ################################
@@ -136,7 +136,7 @@ class MainClass():
             sys.exit(1)
         print("connected with result code "+str(rc))
 
-        client.subscribe([("message1",1),("message2",2)]) 
+        client.subscribe([("unimport",1),("import",2)])
 
     def on_messages(self,client, userdata, msg):
         print(msg.topic+" "+str(msg.payload))
@@ -203,6 +203,9 @@ class MainClass():
                 else:
                     current_step = (current_step - 1) % 8
                 time.sleep(.0009)
+        
+        
+                
         if knock_num ==2:
             
             for x in range(0, self.step_total): #handles going down
@@ -218,6 +221,8 @@ class MainClass():
                 direction = False
             elif direction == False:
                 direction = True
+                
+                
             for x in range(0, int(self.step_total/2)): #handles going up
                 for gp in range(0, len(pins)):
                     GPIO.output(pins[gp], sequence[current_step][gp])
@@ -251,9 +256,7 @@ class MainClass():
                     current_step = (current_step +1) % 8 # only 8 sequences
                 else:
                     current_step = (current_step - 1) % 8
-                time.sleep(.0009)
-                
-                    
+                time.sleep(.0009)           
             
             
                     
