@@ -146,6 +146,15 @@ class MainClass():
             with open(file_name, 'w') as file_object:
                 file_object.write(str(self.notifications))
             self.knock(direction=True, knock_num=2)
+            
+            
+        if msg.payload.decode("utf-8") == "important":
+            print("important message received")
+            self.notifications +=1
+            with open(file_name, 'w') as file_object:
+                file_object.write(str(self.notifications))
+            self.knock(direction=True, knock_num=4)
+                        
 
         if msg.payload.decode("utf-8") == "call":
            # print("rings")
