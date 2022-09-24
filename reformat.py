@@ -39,7 +39,7 @@ sequence = [[1,0,0,1],
 pins = [gp1, gp2, gp3, gp4]
 current_step = 0
 
-file_name = 'notifications.txt'
+file_name = '/home/pi/knock_notif/notifications.txt'
 
 
 class MainClass():
