@@ -81,8 +81,7 @@ class MainClass():
                 cdata = data.rstrip()
                 notifs = int(cdata) #should produce number
                 if notifs>0:
-                    for n in range(notifs): 
-                        self.knock(direction=False)              
+                    self.knock(direction=False, knock_num=notifs)
                                     
                         
         
@@ -206,7 +205,7 @@ class MainClass():
         
         
                 
-        if knock_num ==2:
+        if knock_num > 1:
             
             for x in range(0, self.step_total): #handles going down
                 for gp in range(0, len(pins)):
@@ -222,32 +221,34 @@ class MainClass():
             elif direction == False:
                 direction = True
                 
+            for x in range(0, knock_num):
                 
-            for x in range(0, int(self.step_total/2)): #handles going up
-                for gp in range(0, len(pins)):
-                    GPIO.output(pins[gp], sequence[current_step][gp])
-                if direction == True:
-                    current_step = (current_step +1) % 8 # only 8 sequences
-                else:
-                    current_step = (current_step - 1) % 8
-                time.sleep(.0009)
-            if direction == True:
-                direction = False
-            elif direction == False:
-                direction = True
-            for x in range(0, int(self.step_total/2)): #handles going down once more
-                for gp in range(0, len(pins)):
-                    GPIO.output(pins[gp], sequence[current_step][gp])
-                if direction == True:
-                    current_step = (current_step +1) % 8 # only 8 sequences
-                else:
-                    current_step = (current_step - 1) % 8
-                time.sleep(.0009)
                 
-            if direction == True:
-                direction = False
-            elif direction == False:
-                direction = True  
+                for x in range(0, int(self.step_total/2)): #handles going up
+                    for gp in range(0, len(pins)):
+                        GPIO.output(pins[gp], sequence[current_step][gp])
+                    if direction == True:
+                        current_step = (current_step +1) % 8 # only 8 sequences
+                    else:
+                        current_step = (current_step - 1) % 8
+                    time.sleep(.0009)
+                if direction == True:
+                    direction = False
+                elif direction == False:
+                    direction = True
+                for x in range(0, int(self.step_total/2)): #handles going down once more
+                    for gp in range(0, len(pins)):
+                        GPIO.output(pins[gp], sequence[current_step][gp])
+                    if direction == True:
+                        current_step = (current_step +1) % 8 # only 8 sequences
+                    else:
+                        current_step = (current_step - 1) % 8
+                    time.sleep(.0009)
+                
+                if direction == True:
+                    direction = False
+                elif direction == False:
+                    direction = True  
                 
             for x in range(0, self.step_total): #handles going up final time
                 for gp in range(0, len(pins)):
