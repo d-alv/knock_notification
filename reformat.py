@@ -221,7 +221,7 @@ class MainClass():
             elif direction == False:
                 direction = True
                 
-            for x in range(0, knock_num):
+            for x in range(0, knock_num-1):
                 
                 
                 for x in range(0, int(self.step_total/2)): #handles going up
