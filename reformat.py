@@ -135,12 +135,12 @@ class MainClass():
             sys.exit(1)
         print("connected with result code "+str(rc))
 
-        client.subscribe([("unimport",1),("import",2)])
+        client.subscribe([("unimportant",1),("important",2)])
 
     def on_messages(self,client, userdata, msg):
         print(msg.topic+" "+str(msg.payload))
 
-        if msg.payload.decode("utf-8") == "notif":
+        if msg.payload.decode("utf-8") == "notify":
             #print("notifies")
             self.notifications += 1
             with open(file_name, 'w') as file_object:
@@ -156,7 +156,7 @@ class MainClass():
             self.knock(direction=True, knock_num=4)
                         
 
-        if msg.payload.decode("utf-8") == "call":
+        if msg.payload.decode("utf-8") == "calls":
            # print("rings")
             self.set_start()
             self.call_flag = True
@@ -164,14 +164,14 @@ class MainClass():
             #code for this changes
             # rings for 30 seconds if not answered
 
-        if msg.payload.decode("utf-8") == "clearing":
+        if msg.payload.decode("utf-8") == "clearings":
            # print("clears")
             self.notifications=0
             with open(file_name, 'w') as file_object:
                 file_object.write('')
                 
                 
-        if msg.payload.decode("utf-8") == "answered":
+        if msg.payload.decode("utf-8") == "answering":
             # this works for when the phone is answered
             # prompts the robot to stop "notification"
            # print("call answered")
