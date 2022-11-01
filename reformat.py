@@ -53,7 +53,7 @@ class MainClass():
         self.connected_once=False
         self.count=0
         self.stime = time.time() # start time
-        self.retry_delay = self.retry_delay_fixed
+        self.retry_wait = self.retry_delay_fixed
         self.elapsed_time = 0
         self.notifications=0
         self.step_total = 0# 239
@@ -65,10 +65,11 @@ class MainClass():
 
         self.client = mqtt.Client()
         
-        self.call_flag = False
+        self.call_flag = False # flag for receiving call
         
     def keep_running(self):
         #prepare run variables/methods
+        retry=0
         self.client.on_connect = self.on_connects
         self.client.on_message = self.on_messages
         self.client.connect("192.168.86.44", 1883, 60)
@@ -79,22 +80,23 @@ class MainClass():
             else:
 
                 cdata = data.rstrip()
-                notifs = int(cdata) #should produce number
+                notifs = int(cdata) #should produce number of notifications
                 if notifs>0:
                     self.knock(direction=False, knock_num=notifs)
                                     
                         
         
-        while self.run_flag:
+        while self.run_flag: #when the program runs / 
             self.check_time()
             #print(self.elapsed_time)
             self.client.loop(.1)
-            if self.client.connected_flag:
+            rdelay = time.time() - self.stime
+            if self.connect_flag:
                 if self.call_flag==True:
                     self.ring()
                     
                 
-                if self.elapsed_time>=900:
+                if self.elapsed_time>=900: # resets program every 15 minutes to display missed messages.
 
                     self.set_start()
                     self.client.loop_stop()
@@ -103,35 +105,39 @@ class MainClass():
                 # any looped command here 
                 
             
-                rdelay = time.time() - self.stime
+                
             # if the connection fails, this stuff runs
-            if not self.client.connected_flag and rdelay>self.retry_delay:
+            if not self.connect_flag and rdelay>self.retry_wait:
+                retry_wait = self.retry_wait
+                retry_delay_fixed = self.retry_delay_fixed
+                        
                 try:
                     retry+=1
-                    client.connect("192.168.86.33",1883,60)
+                    client.connect("192.168.86.33",1883,60) # attempt to reconnect to server again
 
-                    while not self.client.connected_flag:
+                    while not self.connect_flag:
                         self.client.loop(.01)
                         time.sleep(1)
                         self.stime = time.time()
-                        self.retry_delay=retry_delay_fixed
+                        retry_wait=retry_delay_fixed
                     connected_once=True
                     retry=0 #resets it
                 except Exception as e:
                     print("\nConnect failed: ",e)
-                    retry_delay=retry_delay*retry_delay
-                    if retry_delay>100:
-                        retry_delay=100
-                    print("retry interval =", retry_delay)
+                    retry_wait=retry_wait**2
+                    if retry_wait>100:
+                        retry_wait=100
+                    print("try delay =", retry_wait)
                     if retry>retry_limit and retry_limit !=0:
                         sys.exit(1)
+                        # at this point give up on connection, something may be wrong with WIFI
 
 
     def on_connects(self, client, userdata, flags, rc):
         if rc==0:
-            self.client.connected_flag=True #this shows it was success
+            self.connect_flag=True #this shows it was success
         else:
-            self.client.bad_connected_flag=False
+            self.connect_flag=False
             sys.exit(1)
         print("connected with result code "+str(rc))
 
@@ -266,10 +272,7 @@ class MainClass():
                     current_step = (current_step +1) % 8 # only 8 sequences
                 else:
                     current_step = (current_step - 1) % 8
-                time.sleep(.0009)           
-            
-            
-                    
+                time.sleep(.0009)          
             
 
     def ring(self):
